@@ -1,0 +1,16 @@
+bass1:
+    num_strings: 4
+    make: "Ibanez"
+    has_frets: false
+bass2:
+    num_strings: 5
+    make: "Fender"
+    has_frets: true
+bass3:
+    num_strings: 4
+    make: "Schector"
+    has_frets: true
+bass4:
+    num_strings: 5
+    make: "Gibson"
+    has_frets: true
