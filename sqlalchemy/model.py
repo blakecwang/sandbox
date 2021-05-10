@@ -1,30 +1,45 @@
 #!/usr/bin/env python
 
 #from sqlalchemy.sql.schema import FetchedValue
-from sqlalchemy.dialects import postgresql
 from sqlalchemy.orm import relationship
+from sqlalchemy.sql.expression import func
 from sqlalchemy import (
     BigInteger,
     Boolean,
     CheckConstraint,
     Column,
-    DDL,
     ForeignKey,
-    ForeignKeyConstraint,
-    Index,
+    PrimaryKeyConstraint,
     Text,
     UniqueConstraint,
 )
+from sqlalchemy_utils import ArrowType
 
 from crud import Base
 
-"""
-Case version is determined by 'original_case_relationship'. If that field is
-empty, then it's a new case.
 
-This implementation does NOT handle:
-    - cases for anything but a single drug
-"""
+class Member(Base):
+
+    __tablename__ = "members"
+    __table_args__ = (
+        UniqueConstraint(
+            "client_id",
+            "external_member_id",
+            "person_code",
+            name="members_client_external_person_code_uniq",
+        ),
+    )
+
+    id = Column(BigInteger, primary_key=True)
+
+    client_id = Column(Text, nullable=False)
+
+    external_member_id = Column(Text, nullable=False)
+
+    person_code = Column(Text, nullable=False)
+
+    cases = relationship("Case", backref="member")
+
 
 class Case(Base):
 
@@ -39,9 +54,7 @@ class Case(Base):
             ),
             "case_original_case_relationship_null_check",
         ),
-        UniqueConstraint("rn", name="rn_uniq"),
     )
-
 
     # basic case info
 
@@ -66,6 +79,7 @@ class Case(Base):
     rn = Column(
         Text,
         nullable=False,
+        unique=True,
 #        server_default=FetchedValue(),
 #        server_onupdate=FetchedValue(),
     )
@@ -79,22 +93,13 @@ class Case(Base):
         nullable=False,
     )
 
-    urgent = Column(
-        Boolean,
-        nullable=False,
-        default=False,
-    )
-
+    urgent = Column(Boolean, nullable=False, default=False)
 
     # case-to-case relationships
 
     original_case_number = Column(
         BigInteger,
-        ForeignKey(
-            "cases.case_number",
-            ondelete="cascade",
-            onupdate="cascade",
-        ),
+        ForeignKey("cases.case_number", ondelete="cascade", onupdate="cascade"),
     )
 
     original_case = relationship(
@@ -120,20 +125,15 @@ class Case(Base):
         ),
     )
 
-
     # drug info
 
-    drug_ndc = Column(
-        Text,
-        nullable=False,
-    )
-
+    drug_ndc = Column(Text, nullable=False)
 
     # member, prescriber, requester info
 
-    member = Column(
-        # {"client_id":"123","external_member_id":"abc","person_code":"01"}
-        postgresql.JSON,
+    member_id = Column(
+        BigInteger,
+        ForeignKey("members.id", ondelete="cascade", onupdate="cascade"),
         nullable=False,
     )
 
@@ -154,3 +154,42 @@ class Case(Base):
         ),
         nullable=False,
     )
+
+
+class CaseDetermination(Base):
+
+    __tablename__ = "case_determinations"
+    __table_args__ = (
+        PrimaryKeyConstraint(
+            "case_number",
+            "created_at",
+            "determiner_email",
+            "result",
+            "reason",
+        ),
+    )
+
+    case_number = Column(
+        BigInteger,
+        ForeignKey("cases.case_number", ondelete="cascade", onupdate="cascade"),
+        nullable=False,
+    )
+
+    created_at = Column(
+        ArrowType(timezone=True),
+        server_default=func.clock_timestamp(),
+        nullable=False,
+    )
+
+    determiner_email = Column(Text, nullable=False)
+
+    result = Column(
+        Text,
+        CheckConstraint(
+            "result in ('approved', 'denied', 'closed')",
+            "case_determination_result_check",
+        ),
+        nullable=False,
+    )
+
+    reason = Column(Text, nullable=False)
