@@ -10,19 +10,30 @@ from model import Case
 recreate_database()
 s = Session()
 
-case = Case(
+case0 = Case(
     case_number=1000000000,
-    rn="rn",
-    created_by="not json",
-#    created_by={"email":"person@cap-rx.com"}
+    rn="rn0",
+    drug_ndc="drug_ndc0",
+    created_by={"email":"person@cap-rx.com"}
 )
+s.add(case0)
 
-s.add(case)
+case1 = Case(
+    case_number=1000000001,
+    original_case_number=1000000000,
+    original_case_relationship="reconsideration",
+    rn="rn1",
+    drug_ndc="drug_ndc1",
+    created_by={"email":"person@cap-rx.com"}
+)
+s.add(case1)
 
 s.commit()
 
 cases = s.query(Case).all()
-breakpoint()
+
+#breakpoint()
+
 print(cases)
 
 s.close()

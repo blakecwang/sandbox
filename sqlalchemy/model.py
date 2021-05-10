@@ -59,3 +59,39 @@ class Case(Base):
         nullable=False,
     )
 
+    original_case_number = Column(
+        BigInteger,
+        ForeignKey(
+            "cases.case_number",
+            ondelete="cascade",
+            onupdate="cascade",
+        ),
+    )
+
+    original_case_relationship = Column(
+        Text,
+        CheckConstraint(
+            (
+                "original_case_relationship in ("
+                    "'reconsideration',"
+                    "'appeal_1',"
+                    "'appeal_2',"
+                    "'appeal_3',"
+                    "'peer-to-peer',"
+                    "'duplicate'"
+                ")"
+            ),
+            "case_original_case_relationship_check"
+        )
+    )
+
+    __table_args__ = (
+        CheckConstraint(
+            (
+                "(original_case_number is not null and "
+                "original_case_relationship is not null) or "
+                "(original_case_number is null and "
+                "original_case_relationship is null)"
+            )
+        ),
+    )
