@@ -14,17 +14,24 @@ case0 = Case(
     case_number=1000000000,
     rn="rn0",
     drug_ndc="drug_ndc0",
-    created_by={"email":"person@cap-rx.com"}
+    origin="fax",
+    member={"id":1},
+    prescriber_npi="0123456789",
+    requester_type="pharmacy",
 )
 s.add(case0)
 
 case1 = Case(
     case_number=1000000001,
-    original_case_number=1000000000,
-    original_case_relationship="reconsideration",
     rn="rn1",
     drug_ndc="drug_ndc1",
-    created_by={"email":"person@cap-rx.com"}
+    origin="epa",
+    member={"id":1},
+    prescriber_npi="0123456789",
+    requester_type="prescriber",
+
+    original_case_number=1000000000,
+    original_case_relationship="reconsideration",
 )
 s.add(case1)
 
